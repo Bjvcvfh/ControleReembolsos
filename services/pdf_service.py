@@ -39,6 +39,8 @@ def generate_reimbursement_pdf(reimbursement: dict, output_dir: Path | None = No
     story.append(Paragraph(f"<b>Data:</b> {dt.strftime('%d/%m/%Y')}", styles["Normal"]))
     story.append(Paragraph(f"<b>Hora:</b> {dt.strftime('%H:%M')}", styles["Normal"]))
     story.append(Paragraph(f"<b>Motorista:</b> {reimbursement['motorista_nome']}", styles["Normal"]))
+    if reimbursement.get("placa"):
+        story.append(Paragraph(f"<b>Placa:</b> {reimbursement['placa']}", styles["Normal"]))
     story.append(Spacer(1, 14))
 
     rows = [["Tipo de Servico", "Data", "O.S", "Valor"]]
@@ -77,15 +79,14 @@ def generate_reimbursement_pdf(reimbursement: dict, output_dir: Path | None = No
     story.append(table)
     story.append(Spacer(1, 28))
 
-    signature = Table([[""], ["Autorização"]], colWidths=[70 * mm])
+    signature = Table([["Autorização"]], colWidths=[70 * mm])
     signature.setStyle(
         TableStyle(
             [
                 ("LINEABOVE", (0, 0), (0, 0), 0.8, colors.HexColor("#333333")),
-                ("ALIGN", (0, 1), (0, 1), "CENTER"),
-                ("TOPPADDING", (0, 0), (0, 0), 8),
-                ("TOPPADDING", (0, 1), (0, 1), 4),
-                ("BOTTOMPADDING", (0, 0), (0, 1), 0),
+                ("ALIGN", (0, 0), (0, 0), "CENTER"),
+                ("TOPPADDING", (0, 0), (0, 0), 3),
+                ("BOTTOMPADDING", (0, 0), (0, 0), 0),
             ]
         )
     )

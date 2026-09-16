@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+venv313/
+.venv/
+
+# Build outputs
+build/
+build_fixed/
+build_py313/
+dist/
+dist_fixed/
+dist_py313/
+*.spec.bak
+ControleReembolsosDir.spec
+
+# Local runtimes and tooling caches
+python-builds/
+.uv_cache/
+tools/
+
+# App data and local databases
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/

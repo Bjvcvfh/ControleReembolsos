@@ -134,6 +134,17 @@ class ReimbursementPage(QWidget):
         driver_row.addWidget(self.new_driver_btn)
         layout.addLayout(driver_row)
 
+        plate_row = QHBoxLayout()
+        plate_row.addWidget(QLabel("Placa:"))
+        self.plate_edit = QLineEdit()
+        self.plate_edit.setPlaceholderText("Opcional")
+        self.plate_edit.setMaxLength(8)
+        self.plate_edit.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.plate_edit.setFixedWidth(130)
+        plate_row.addWidget(self.plate_edit)
+        plate_row.addStretch(1)
+        layout.addLayout(plate_row)
+
         header = QGridLayout()
         header.setColumnStretch(0, 4)
         header.setColumnStretch(1, 2)
@@ -261,7 +272,11 @@ class ReimbursementPage(QWidget):
     def save_reimbursement(self) -> None:
         try:
             items = self._validate()
-            reimbursement = self.reimbursement_service.create_reimbursement(self.current_driver_id(), items)
+            reimbursement = self.reimbursement_service.create_reimbursement(
+                self.current_driver_id(),
+                items,
+                self.plate_edit.text(),
+            )
         except Exception as exc:
             QMessageBox.warning(self, "Atenção", str(exc))
             return
@@ -288,5 +303,6 @@ class ReimbursementPage(QWidget):
         for row in list(self.rows):
             row.deleteLater()
         self.rows = []
+        self.plate_edit.clear()
         self.add_row()
         self.update_total()

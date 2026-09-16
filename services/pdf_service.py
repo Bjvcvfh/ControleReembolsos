@@ -75,7 +75,22 @@ def generate_reimbursement_pdf(reimbursement: dict, output_dir: Path | None = No
         )
     )
     story.append(table)
-    story.append(Spacer(1, 22))
+    story.append(Spacer(1, 28))
+
+    signature = Table([[""], ["Autorização"]], colWidths=[70 * mm])
+    signature.setStyle(
+        TableStyle(
+            [
+                ("LINEABOVE", (0, 0), (0, 0), 0.8, colors.HexColor("#333333")),
+                ("ALIGN", (0, 1), (0, 1), "CENTER"),
+                ("TOPPADDING", (0, 0), (0, 0), 8),
+                ("TOPPADDING", (0, 1), (0, 1), 4),
+                ("BOTTOMPADDING", (0, 0), (0, 1), 0),
+            ]
+        )
+    )
+    story.append(signature)
+    story.append(Spacer(1, 18))
     story.append(
         Paragraph(
             "Documento gerado automaticamente pelo Controle de Reembolsos.",

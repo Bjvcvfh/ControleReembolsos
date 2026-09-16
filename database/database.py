@@ -69,6 +69,7 @@ def initialize_database(db_path: Path | None = None) -> None:
                 numero TEXT NOT NULL UNIQUE,
                 motorista_id INTEGER,
                 motorista_nome TEXT NOT NULL,
+                placa TEXT NOT NULL DEFAULT '',
                 data_hora TEXT NOT NULL,
                 valor_total_centavos INTEGER NOT NULL,
                 pdf_path TEXT,
@@ -109,6 +110,14 @@ def initialize_database(db_path: Path | None = None) -> None:
         if "data_servico" not in columns:
             conn.execute(
                 "ALTER TABLE reembolso_itens ADD COLUMN data_servico TEXT NOT NULL DEFAULT ''"
+            )
+        reimbursement_columns = [
+            row[1]
+            for row in conn.execute("PRAGMA table_info(reembolsos)").fetchall()
+        ]
+        if "placa" not in reimbursement_columns:
+            conn.execute(
+                "ALTER TABLE reembolsos ADD COLUMN placa TEXT NOT NULL DEFAULT ''"
             )
         conn.commit()
     finally:

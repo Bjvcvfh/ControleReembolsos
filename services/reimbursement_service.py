@@ -4,11 +4,12 @@ from database.database import get_connection, transaction
 
 
 class ReimbursementService:
-    def create_reimbursement(self, motorista_id: int, items: list[dict]) -> dict:
+    def create_reimbursement(self, motorista_id: int, items: list[dict], placa: str = "") -> dict:
         if not motorista_id:
             raise ValueError("Selecione um motorista.")
         if not items:
             raise ValueError("Adicione pelo menos um item.")
+        plate = str(placa or "").strip().upper()
 
         with transaction() as conn:
             driver = conn.execute(
@@ -52,10 +53,10 @@ class ReimbursementService:
             cur = conn.execute(
                 """
                 INSERT INTO reembolsos
-                    (numero, motorista_id, motorista_nome, data_hora, valor_total_centavos)
-                VALUES (?, ?, ?, ?, ?)
+                    (numero, motorista_id, motorista_nome, placa, data_hora, valor_total_centavos)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
-                (number, driver["id"], driver["nome"], now.isoformat(sep=" "), total),
+                (number, driver["id"], driver["nome"], plate, now.isoformat(sep=" "), total),
             )
             reimbursement_id = int(cur.lastrowid)
 
@@ -113,8 +114,8 @@ class ReimbursementService:
         params: list[str] = []
         if search.strip():
             like = f"%{search.strip()}%"
-            where.append("(r.numero LIKE ? OR r.motorista_nome LIKE ?)")
-            params.extend([like, like])
+            where.append("(r.numero LIKE ? OR r.motorista_nome LIKE ? OR r.placa LIKE ?)")
+            params.extend([like, like, like])
         if start_date:
             where.append("date(r.data_hora) >= date(?)")
             params.append(start_date)
@@ -133,6 +134,7 @@ class ReimbursementService:
                 r.numero,
                 r.data_hora,
                 r.motorista_nome,
+                r.placa,
                 r.valor_total_centavos,
                 COUNT(ri.id) AS quantidade_itens
             FROM reembolsos r

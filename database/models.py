@@ -29,6 +29,7 @@ class Reimbursement:
     numero: str
     motorista_id: int | None
     motorista_nome: str
+    placa: str
     data_hora: str
     valor_total_centavos: int
     pdf_path: str | None

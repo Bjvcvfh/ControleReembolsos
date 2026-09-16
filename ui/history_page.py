@@ -44,7 +44,7 @@ class HistoryPage(QWidget):
 
         filters = QGridLayout()
         self.search_edit = QLineEdit()
-        self.search_edit.setPlaceholderText("Pesquisar por número ou motorista")
+        self.search_edit.setPlaceholderText("Pesquisar por número, motorista ou placa")
         self.search_edit.textChanged.connect(self.refresh)
         self.start_date = QDateEdit()
         self.start_date.setCalendarPopup(True)
@@ -77,8 +77,8 @@ class HistoryPage(QWidget):
         filters.addWidget(export_btn, 2, 3)
         layout.addLayout(filters)
 
-        self.table = QTableWidget(0, 5)
-        self.table.setHorizontalHeaderLabels(["Nº", "Data", "Motorista", "Itens", "Total"])
+        self.table = QTableWidget(0, 6)
+        self.table.setHorizontalHeaderLabels(["Nº", "Data", "Motorista", "Placa", "Itens", "Total"])
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.doubleClicked.connect(self.show_selected)
@@ -124,12 +124,13 @@ class HistoryPage(QWidget):
                 row_data["numero"],
                 dt.strftime("%d/%m/%Y %H:%M"),
                 row_data["motorista_nome"],
+                row_data["placa"] or "-",
                 str(row_data["quantidade_itens"]),
                 format_brl_from_cents(row_data["valor_total_centavos"]),
             ]
             for col, value in enumerate(values):
                 item = QTableWidgetItem(value)
-                if col in (0, 3, 4):
+                if col in (0, 3, 4, 5):
                     item.setTextAlignment(Qt.AlignCenter)
                 self.table.setItem(row, col, item)
         self.table.resizeColumnsToContents()

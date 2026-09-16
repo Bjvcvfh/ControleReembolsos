@@ -29,7 +29,8 @@ class ReimbursementDetailDialog(QDialog):
             f"<b>Reembolso nº:</b> {reimbursement['numero']}<br>"
             f"<b>Data:</b> {dt.strftime('%d/%m/%Y')} &nbsp; "
             f"<b>Hora:</b> {dt.strftime('%H:%M')}<br>"
-            f"<b>Motorista:</b> {reimbursement['motorista_nome']}"
+            f"<b>Motorista:</b> {reimbursement['motorista_nome']}<br>"
+            f"<b>Placa:</b> {reimbursement['placa'] or '-'}"
         )
         layout.addWidget(header)
 

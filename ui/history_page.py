@@ -124,7 +124,7 @@ class HistoryPage(QWidget):
                 row_data["numero"],
                 dt.strftime("%d/%m/%Y %H:%M"),
                 row_data["motorista_nome"],
-                row_data["placa"] or "-",
+                (row_data["placas"] or "").replace(",", " / ") or "-",
                 str(row_data["quantidade_itens"]),
                 format_brl_from_cents(row_data["valor_total_centavos"]),
             ]

@@ -13,6 +13,17 @@ from utils.filenames import safe_filename_part, unique_path
 from utils.paths import downloads_dir
 
 
+def _format_reimbursement_plates(items: list[dict]) -> str:
+    plates: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        plate = str(item.get("placa") or "").strip().upper()
+        if plate and plate not in seen:
+            seen.add(plate)
+            plates.append(plate)
+    return " / ".join(plates)
+
+
 def generate_reimbursement_pdf(reimbursement: dict, output_dir: Path | None = None) -> Path:
     output_dir = output_dir or downloads_dir()
     dt = datetime.fromisoformat(reimbursement["data_hora"])
@@ -39,8 +50,9 @@ def generate_reimbursement_pdf(reimbursement: dict, output_dir: Path | None = No
     story.append(Paragraph(f"<b>Data:</b> {dt.strftime('%d/%m/%Y')}", styles["Normal"]))
     story.append(Paragraph(f"<b>Hora:</b> {dt.strftime('%H:%M')}", styles["Normal"]))
     story.append(Paragraph(f"<b>Motorista:</b> {reimbursement['motorista_nome']}", styles["Normal"]))
-    if reimbursement.get("placa"):
-        story.append(Paragraph(f"<b>Placa:</b> {reimbursement['placa']}", styles["Normal"]))
+    plates = _format_reimbursement_plates(reimbursement["items"])
+    if plates:
+        story.append(Paragraph(f"<b>Placa:</b> {plates}", styles["Normal"]))
     story.append(Spacer(1, 14))
 
     rows = [["Tipo de Servico", "Data", "O.S", "Valor"]]

@@ -16,6 +16,17 @@ from services.pdf_service import regenerate_pdf
 from utils.currency import format_brl_from_cents
 
 
+def format_plates(items: list[dict]) -> str:
+    plates: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        plate = str(item.get("placa") or "").strip().upper()
+        if plate and plate not in seen:
+            seen.add(plate)
+            plates.append(plate)
+    return " / ".join(plates) if plates else "-"
+
+
 class ReimbursementDetailDialog(QDialog):
     def __init__(self, reimbursement: dict, parent=None):
         super().__init__(parent)
@@ -30,12 +41,12 @@ class ReimbursementDetailDialog(QDialog):
             f"<b>Data:</b> {dt.strftime('%d/%m/%Y')} &nbsp; "
             f"<b>Hora:</b> {dt.strftime('%H:%M')}<br>"
             f"<b>Motorista:</b> {reimbursement['motorista_nome']}<br>"
-            f"<b>Placa:</b> {reimbursement['placa'] or '-'}"
+            f"<b>Placa:</b> {format_plates(reimbursement['items'])}"
         )
         layout.addWidget(header)
 
-        self.table = QTableWidget(0, 4)
-        self.table.setHorizontalHeaderLabels(["Tipo de Serviço", "Data", "O.S", "Valor"])
+        self.table = QTableWidget(0, 5)
+        self.table.setHorizontalHeaderLabels(["Tipo de Serviço", "Data", "Placa", "O.S", "Valor"])
         self.table.horizontalHeader().setStretchLastSection(True)
         layout.addWidget(self.table)
         self._load_items()
@@ -62,6 +73,7 @@ class ReimbursementDetailDialog(QDialog):
             values = [
                 item["tipo_servico_descricao"],
                 datetime.strptime(item["data_servico"], "%Y-%m-%d").strftime("%d/%m/%Y") if item["data_servico"] else "-",
+                item["placa"] or "-",
                 item["os"] or "-",
                 format_brl_from_cents(item["valor_centavos"]),
             ]

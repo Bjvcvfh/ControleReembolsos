@@ -4,12 +4,11 @@ from database.database import get_connection, transaction
 
 
 class ReimbursementService:
-    def create_reimbursement(self, motorista_id: int, items: list[dict], placa: str = "") -> dict:
+    def create_reimbursement(self, motorista_id: int, items: list[dict]) -> dict:
         if not motorista_id:
             raise ValueError("Selecione um motorista.")
         if not items:
             raise ValueError("Adicione pelo menos um item.")
-        plate = str(placa or "").strip().upper()
 
         with transaction() as conn:
             driver = conn.execute(
@@ -39,6 +38,7 @@ class ReimbursementService:
                         "tipo_servico_id": service_type["id"],
                         "tipo_servico_descricao": service_type["descricao"],
                         "data_servico": self._validate_service_date(item.get("data_servico")),
+                        "placa": str(item.get("placa") or "").strip().upper(),
                         "os": str(item.get("os") or "").strip(),
                         "valor_centavos": value_cents,
                     }
@@ -53,10 +53,10 @@ class ReimbursementService:
             cur = conn.execute(
                 """
                 INSERT INTO reembolsos
-                    (numero, motorista_id, motorista_nome, placa, data_hora, valor_total_centavos)
-                VALUES (?, ?, ?, ?, ?, ?)
+                    (numero, motorista_id, motorista_nome, data_hora, valor_total_centavos)
+                VALUES (?, ?, ?, ?, ?)
                 """,
-                (number, driver["id"], driver["nome"], plate, now.isoformat(sep=" "), total),
+                (number, driver["id"], driver["nome"], now.isoformat(sep=" "), total),
             )
             reimbursement_id = int(cur.lastrowid)
 
@@ -64,14 +64,15 @@ class ReimbursementService:
                 conn.execute(
                     """
                     INSERT INTO reembolso_itens
-                        (reembolso_id, tipo_servico_id, tipo_servico_descricao, data_servico, os, valor_centavos)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                        (reembolso_id, tipo_servico_id, tipo_servico_descricao, data_servico, placa, os, valor_centavos)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         reimbursement_id,
                         item["tipo_servico_id"],
                         item["tipo_servico_descricao"],
                         item["data_servico"],
+                        item["placa"],
                         item["os"],
                         item["valor_centavos"],
                     ),
@@ -114,7 +115,9 @@ class ReimbursementService:
         params: list[str] = []
         if search.strip():
             like = f"%{search.strip()}%"
-            where.append("(r.numero LIKE ? OR r.motorista_nome LIKE ? OR r.placa LIKE ?)")
+            where.append(
+                "(r.numero LIKE ? OR r.motorista_nome LIKE ? OR EXISTS (SELECT 1 FROM reembolso_itens ri3 WHERE ri3.reembolso_id = r.id AND ri3.placa LIKE ?))"
+            )
             params.extend([like, like, like])
         if start_date:
             where.append("date(r.data_hora) >= date(?)")
@@ -134,7 +137,7 @@ class ReimbursementService:
                 r.numero,
                 r.data_hora,
                 r.motorista_nome,
-                r.placa,
+                GROUP_CONCAT(DISTINCT NULLIF(ri.placa, '')) AS placas,
                 r.valor_total_centavos,
                 COUNT(ri.id) AS quantidade_itens
             FROM reembolsos r

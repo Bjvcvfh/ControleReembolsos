@@ -83,6 +83,7 @@ def initialize_database(db_path: Path | None = None) -> None:
                 tipo_servico_id INTEGER,
                 tipo_servico_descricao TEXT NOT NULL,
                 data_servico TEXT NOT NULL,
+                placa TEXT NOT NULL DEFAULT '',
                 os TEXT,
                 valor_centavos INTEGER NOT NULL,
                 FOREIGN KEY (reembolso_id) REFERENCES reembolsos(id) ON DELETE CASCADE,
@@ -111,6 +112,10 @@ def initialize_database(db_path: Path | None = None) -> None:
             conn.execute(
                 "ALTER TABLE reembolso_itens ADD COLUMN data_servico TEXT NOT NULL DEFAULT ''"
             )
+        if "placa" not in columns:
+            conn.execute(
+                "ALTER TABLE reembolso_itens ADD COLUMN placa TEXT NOT NULL DEFAULT ''"
+            )
         reimbursement_columns = [
             row[1]
             for row in conn.execute("PRAGMA table_info(reembolsos)").fetchall()
@@ -119,6 +124,23 @@ def initialize_database(db_path: Path | None = None) -> None:
             conn.execute(
                 "ALTER TABLE reembolsos ADD COLUMN placa TEXT NOT NULL DEFAULT ''"
             )
+        conn.execute(
+            """
+            UPDATE reembolso_itens
+            SET placa = (
+                SELECT placa
+                FROM reembolsos
+                WHERE reembolsos.id = reembolso_itens.reembolso_id
+            )
+            WHERE placa = ''
+              AND EXISTS (
+                  SELECT 1
+                  FROM reembolsos
+                  WHERE reembolsos.id = reembolso_itens.reembolso_id
+                    AND reembolsos.placa <> ''
+              )
+            """
+        )
         conn.commit()
     finally:
         conn.close()

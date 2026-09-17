@@ -19,6 +19,8 @@ class ServiceType:
 class ReimbursementItem:
     tipo_servico_id: int
     tipo_servico_descricao: str
+    data_servico: str
+    placa: str
     os: str
     valor_centavos: int
 
@@ -29,7 +31,6 @@ class Reimbursement:
     numero: str
     motorista_id: int | None
     motorista_nome: str
-    placa: str
     data_hora: str
     valor_total_centavos: int
     pdf_path: str | None

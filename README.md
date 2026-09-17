@@ -10,13 +10,14 @@ O sistema registra reembolsos com múltiplos itens, calcula o total automaticame
 - Cadastro de tipos de serviço com status ativo/inativo.
 - Lançamento de reembolso com uma ou várias linhas.
 - Data individual por item do reembolso.
-- Campos opcionais de placa e O.S.
+- Campos opcionais de placa e O.S. por item do reembolso.
 - Valores em Real brasileiro.
 - Cálculo automático do total.
 - Número sequencial automático para cada reembolso.
 - Histórico pesquisável por número, motorista, placa, período e tipo de serviço.
 - Visualização detalhada de reembolsos.
 - Geração e regeração de PDF.
+- Resumo de placas únicas no cabeçalho do PDF.
 - Exportação CSV compatível com Excel em português/Brasil.
 - Backup e restauração do banco SQLite.
 - Banco persistente fora do executável.

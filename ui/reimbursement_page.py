@@ -36,10 +36,14 @@ class ServiceRow(QWidget):
         layout.setColumnStretch(1, 2)
         layout.setColumnStretch(2, 2)
         layout.setColumnStretch(3, 2)
+        layout.setColumnStretch(4, 2)
 
         self.service_combo = QComboBox()
         self.service_combo.setEditable(True)
         self.service_combo.setInsertPolicy(QComboBox.NoInsert)
+        self.plate_edit = QLineEdit()
+        self.plate_edit.setPlaceholderText("Opcional")
+        self.plate_edit.setMaxLength(8)
         self.os_edit = QLineEdit()
         self.os_edit.setPlaceholderText("Opcional")
         self.date_edit = QDateEdit()
@@ -59,10 +63,11 @@ class ServiceRow(QWidget):
 
         layout.addWidget(self.service_combo, 0, 0)
         layout.addWidget(self.date_edit, 0, 1)
-        layout.addWidget(self.os_edit, 0, 2)
-        layout.addWidget(self.value_edit, 0, 3)
-        layout.addWidget(self.new_service_btn, 0, 4)
-        layout.addWidget(self.remove_btn, 0, 5)
+        layout.addWidget(self.plate_edit, 0, 2)
+        layout.addWidget(self.os_edit, 0, 3)
+        layout.addWidget(self.value_edit, 0, 4)
+        layout.addWidget(self.new_service_btn, 0, 5)
+        layout.addWidget(self.remove_btn, 0, 6)
         self.reload_services(services)
 
     def reload_services(self, services: list[dict], select_id: int | None = None) -> None:
@@ -92,6 +97,7 @@ class ServiceRow(QWidget):
         return {
             "tipo_servico_id": self.current_service_id(),
             "data_servico": self.date_edit.date().toString("yyyy-MM-dd"),
+            "placa": self.plate_edit.text().strip(),
             "os": self.os_edit.text().strip(),
             "valor_centavos": self.value_cents(),
         }
@@ -134,26 +140,17 @@ class ReimbursementPage(QWidget):
         driver_row.addWidget(self.new_driver_btn)
         layout.addLayout(driver_row)
 
-        plate_row = QHBoxLayout()
-        plate_row.addWidget(QLabel("Placa:"))
-        self.plate_edit = QLineEdit()
-        self.plate_edit.setPlaceholderText("Opcional")
-        self.plate_edit.setMaxLength(8)
-        self.plate_edit.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.plate_edit.setFixedWidth(130)
-        plate_row.addWidget(self.plate_edit)
-        plate_row.addStretch(1)
-        layout.addLayout(plate_row)
-
         header = QGridLayout()
         header.setColumnStretch(0, 4)
         header.setColumnStretch(1, 2)
         header.setColumnStretch(2, 2)
         header.setColumnStretch(3, 2)
+        header.setColumnStretch(4, 2)
         header.addWidget(QLabel("Tipo de Serviço"), 0, 0)
         header.addWidget(QLabel("Data"), 0, 1)
-        header.addWidget(QLabel("O.S"), 0, 2)
-        header.addWidget(QLabel("Valor"), 0, 3)
+        header.addWidget(QLabel("Placa"), 0, 2)
+        header.addWidget(QLabel("O.S"), 0, 3)
+        header.addWidget(QLabel("Valor"), 0, 4)
         layout.addLayout(header)
 
         self.scroll = QScrollArea()
@@ -221,6 +218,7 @@ class ReimbursementPage(QWidget):
     def remove_row(self, row: ServiceRow) -> None:
         if len(self.rows) == 1:
             row.value_edit.clear()
+            row.plate_edit.clear()
             row.os_edit.clear()
             self.update_total()
             return
@@ -259,7 +257,11 @@ class ReimbursementPage(QWidget):
         if not self.current_driver_id():
             raise ValueError("Selecione um motorista.")
         items = [row.data() for row in self.rows]
-        valid_items = [item for item in items if item["tipo_servico_id"] or item["valor_centavos"] or item["os"]]
+        valid_items = [
+            item
+            for item in items
+            if item["tipo_servico_id"] or item["valor_centavos"] or item["placa"] or item["os"]
+        ]
         if not valid_items:
             raise ValueError("Adicione pelo menos um serviço.")
         for item in valid_items:
@@ -275,7 +277,6 @@ class ReimbursementPage(QWidget):
             reimbursement = self.reimbursement_service.create_reimbursement(
                 self.current_driver_id(),
                 items,
-                self.plate_edit.text(),
             )
         except Exception as exc:
             QMessageBox.warning(self, "Atenção", str(exc))
@@ -303,6 +304,5 @@ class ReimbursementPage(QWidget):
         for row in list(self.rows):
             row.deleteLater()
         self.rows = []
-        self.plate_edit.clear()
         self.add_row()
         self.update_total()

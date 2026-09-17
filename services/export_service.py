@@ -15,9 +15,9 @@ class ExportService:
                     r.numero,
                     r.data_hora,
                     r.motorista_nome,
-                    r.placa,
                     i.tipo_servico_descricao,
                     i.data_servico,
+                    i.placa,
                     i.os,
                     i.valor_centavos,
                     r.valor_total_centavos

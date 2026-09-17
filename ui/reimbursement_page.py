@@ -22,6 +22,11 @@ from ui.dialogs.name_dialog import NameDialog
 from utils.currency import format_brl_from_cents, parse_brl_to_cents
 
 
+ROW_GRID_SPACING = 8
+NEW_SERVICE_BUTTON_WIDTH = 104
+REMOVE_BUTTON_WIDTH = 72
+
+
 class ServiceRow(QWidget):
     changed = Signal()
     remove_requested = Signal(object)
@@ -32,6 +37,7 @@ class ServiceRow(QWidget):
         self.services = services
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setHorizontalSpacing(ROW_GRID_SPACING)
         layout.setColumnStretch(0, 4)
         layout.setColumnStretch(1, 2)
         layout.setColumnStretch(2, 2)
@@ -56,9 +62,11 @@ class ServiceRow(QWidget):
         self.value_edit.textChanged.connect(self.changed.emit)
 
         self.new_service_btn = QPushButton("+ Novo tipo")
+        self.new_service_btn.setFixedWidth(NEW_SERVICE_BUTTON_WIDTH)
         self.new_service_btn.clicked.connect(lambda: self.new_service_requested.emit(self))
         self.remove_btn = QPushButton("Excluir")
         self.remove_btn.setObjectName("dangerButton")
+        self.remove_btn.setFixedWidth(REMOVE_BUTTON_WIDTH)
         self.remove_btn.clicked.connect(lambda: self.remove_requested.emit(self))
 
         layout.addWidget(self.service_combo, 0, 0)
@@ -141,16 +149,26 @@ class ReimbursementPage(QWidget):
         layout.addLayout(driver_row)
 
         header = QGridLayout()
+        header.setContentsMargins(0, 0, 0, 0)
+        header.setHorizontalSpacing(ROW_GRID_SPACING)
         header.setColumnStretch(0, 4)
         header.setColumnStretch(1, 2)
         header.setColumnStretch(2, 2)
         header.setColumnStretch(3, 2)
         header.setColumnStretch(4, 2)
-        header.addWidget(QLabel("Tipo de Serviço"), 0, 0)
-        header.addWidget(QLabel("Data"), 0, 1)
-        header.addWidget(QLabel("Placa"), 0, 2)
-        header.addWidget(QLabel("O.S"), 0, 3)
-        header.addWidget(QLabel("Valor"), 0, 4)
+        header.setColumnStretch(5, 0)
+        header.setColumnStretch(6, 0)
+        header.addWidget(self._header_label("Tipo de Serviço"), 0, 0)
+        header.addWidget(self._header_label("Data"), 0, 1)
+        header.addWidget(self._header_label("Placa"), 0, 2)
+        header.addWidget(self._header_label("O.S"), 0, 3)
+        header.addWidget(self._header_label("Valor"), 0, 4)
+        new_service_spacer = QWidget()
+        new_service_spacer.setFixedWidth(NEW_SERVICE_BUTTON_WIDTH)
+        remove_spacer = QWidget()
+        remove_spacer.setFixedWidth(REMOVE_BUTTON_WIDTH)
+        header.addWidget(new_service_spacer, 0, 5)
+        header.addWidget(remove_spacer, 0, 6)
         layout.addLayout(header)
 
         self.scroll = QScrollArea()
@@ -184,6 +202,11 @@ class ReimbursementPage(QWidget):
         save_btn.clicked.connect(self.save_reimbursement)
         bottom.addWidget(save_btn)
         layout.addLayout(bottom)
+
+    def _header_label(self, text: str) -> QLabel:
+        label = QLabel(text)
+        label.setAlignment(Qt.AlignCenter)
+        return label
 
     def reload_catalogs(self) -> None:
         self.driver_cache = self.catalog.list_drivers()

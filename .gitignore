@@ -30,6 +30,7 @@ data/
 *.sqlite3
 
 # Logs and temporary files
+tmp_pdf_test/
 *.log
 *.tmp
 *.bak

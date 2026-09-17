@@ -13,17 +13,6 @@ from utils.filenames import safe_filename_part, unique_path
 from utils.paths import downloads_dir
 
 
-def _format_reimbursement_plates(items: list[dict]) -> str:
-    plates: list[str] = []
-    seen: set[str] = set()
-    for item in items:
-        plate = str(item.get("placa") or "").strip().upper()
-        if plate and plate not in seen:
-            seen.add(plate)
-            plates.append(plate)
-    return " / ".join(plates)
-
-
 def generate_reimbursement_pdf(reimbursement: dict, output_dir: Path | None = None) -> Path:
     output_dir = output_dir or downloads_dir()
     dt = datetime.fromisoformat(reimbursement["data_hora"])
@@ -50,25 +39,23 @@ def generate_reimbursement_pdf(reimbursement: dict, output_dir: Path | None = No
     story.append(Paragraph(f"<b>Data:</b> {dt.strftime('%d/%m/%Y')}", styles["Normal"]))
     story.append(Paragraph(f"<b>Hora:</b> {dt.strftime('%H:%M')}", styles["Normal"]))
     story.append(Paragraph(f"<b>Motorista:</b> {reimbursement['motorista_nome']}", styles["Normal"]))
-    plates = _format_reimbursement_plates(reimbursement["items"])
-    if plates:
-        story.append(Paragraph(f"<b>Placa:</b> {plates}", styles["Normal"]))
     story.append(Spacer(1, 14))
 
-    rows = [["Tipo de Servico", "Data", "O.S", "Valor"]]
+    rows = [["Tipo de Servico", "Data", "Placa", "O.S", "Valor"]]
     for item in reimbursement["items"]:
         service_date = datetime.strptime(item["data_servico"], "%Y-%m-%d").strftime("%d/%m/%Y") if item["data_servico"] else "-"
         rows.append(
             [
                 item["tipo_servico_descricao"],
                 service_date,
+                item["placa"] or "-",
                 item["os"] or "-",
                 format_brl_from_cents(item["valor_centavos"]),
             ]
         )
-    rows.append(["", "", "TOTAL", format_brl_from_cents(reimbursement["valor_total_centavos"])])
+    rows.append(["", "", "", "TOTAL", format_brl_from_cents(reimbursement["valor_total_centavos"])])
 
-    table = Table(rows, colWidths=[78 * mm, 28 * mm, 38 * mm, 33 * mm])
+    table = Table(rows, colWidths=[64 * mm, 26 * mm, 28 * mm, 26 * mm, 30 * mm])
     table.setStyle(
         TableStyle(
             [
@@ -77,8 +64,9 @@ def generate_reimbursement_pdf(reimbursement: dict, output_dir: Path | None = No
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#c8d0da")),
                 ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, colors.HexColor("#f5f7fa")]),
-                ("ALIGN", (3, 1), (3, -1), "RIGHT"),
-                ("FONTNAME", (2, -1), (-1, -1), "Helvetica-Bold"),
+                ("ALIGN", (1, 1), (3, -1), "CENTER"),
+                ("ALIGN", (4, 1), (4, -1), "RIGHT"),
+                ("FONTNAME", (3, -1), (-1, -1), "Helvetica-Bold"),
                 ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8eef7")),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),

@@ -17,7 +17,7 @@ O sistema registra reembolsos com múltiplos itens, calcula o total automaticame
 - Histórico pesquisável por número, motorista, placa, período e tipo de serviço.
 - Visualização detalhada de reembolsos.
 - Geração e regeração de PDF.
-- Resumo de placas únicas no cabeçalho do PDF.
+- Placa exibida por linha na tabela do PDF.
 - Exportação CSV compatível com Excel em português/Brasil.
 - Backup e restauração do banco SQLite.
 - Banco persistente fora do executável.
